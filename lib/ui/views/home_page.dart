@@ -1,7 +1,9 @@
 import 'package:contacts_app/data/entity/persons.dart';
+import 'package:contacts_app/ui/cubit/home_page_cubit.dart';
 import 'package:contacts_app/ui/views/detail_page.dart';
 import 'package:contacts_app/ui/views/registration_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,33 +16,20 @@ class _HomePageState extends State<HomePage> {
   bool search_being_done = false;
 
   @override
+  void initState() {
+    super.initState();
+    context.read<HomePageCubit>().downloadPersons();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Future<void> search(String aramaKelimesi) async {
-      print("kişi ara: $aramaKelimesi");
-    }
-
-    Future<List<Persons>> downloadPersons() async {
-      var personsList = <Persons>[];
-      var k1 = Persons(kisi_id: 0, kisi_ad: "Murat", kisi_tel: "1111");
-      var k2 = Persons(kisi_id: 1, kisi_ad: "Azize", kisi_tel: "2222");
-      var k3 = Persons(kisi_id: 2, kisi_ad: "Nazlı", kisi_tel: "3333");
-      personsList.add(k1);
-      personsList.add(k2);
-      personsList.add(k3);
-      return personsList;
-    }
-
-    Future<void> delete(int kisi_id) async {
-      print("kişi sil: $kisi_id");
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: search_being_done
             ? TextField(
                 decoration: InputDecoration(hintText: "Ara"),
                 onChanged: (aramaSonucu) {
-                  search(aramaSonucu);
+                  context.read<HomePageCubit>().search(aramaSonucu);
                 },
               )
             : const Text("Kişiler"),
@@ -51,6 +40,7 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       search_being_done = false;
                     });
+                    context.read<HomePageCubit>().downloadPersons();
                   },
                   icon: const Icon(Icons.clear))
               : IconButton(
@@ -62,13 +52,11 @@ class _HomePageState extends State<HomePage> {
                   icon: const Icon(Icons.search))
         ],
       ),
-      body: FutureBuilder<List<Persons>>(
-        future: downloadPersons(),
-        builder: (context, snapShot) {
-          if (snapShot.hasData) {
-            var personsList = snapShot.data;
+      body: BlocBuilder<HomePageCubit, List<Persons>>(
+        builder: (context, personsList) {
+          if (personsList.isNotEmpty) {
             return ListView.builder(
-              itemCount: personsList!.length,
+              itemCount: personsList.length,
               itemBuilder: (context, indeks) {
                 var person = personsList[indeks];
                 return GestureDetector(
@@ -78,7 +66,7 @@ class _HomePageState extends State<HomePage> {
                         MaterialPageRoute(
                             builder: (context) =>
                                 DetailPage(person: person))).then((value) {
-                      print("returned to home page");
+                      context.read<HomePageCubit>().downloadPersons();
                     });
                   },
                   child: Card(
@@ -109,7 +97,9 @@ class _HomePageState extends State<HomePage> {
                                 action: SnackBarAction(
                                   label: "Evet",
                                   onPressed: () {
-                                    delete(person.kisi_id);
+                                    context
+                                        .read<HomePageCubit>()
+                                        .delete(person.kisi_id);
                                   },
                                 ),
                               ));
@@ -136,7 +126,7 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                       builder: (context) => const RegistrationPage()))
               .then((value) {
-            print("returned to home page");
+            context.read<HomePageCubit>().downloadPersons();
           });
         },
         child: const Icon(Icons.add),

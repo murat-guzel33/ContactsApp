@@ -1,4 +1,6 @@
+import 'package:contacts_app/ui/cubit/registration_page_cubit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({super.key});
@@ -10,10 +12,6 @@ class RegistrationPage extends StatefulWidget {
 class _RegistrationPageState extends State<RegistrationPage> {
   var tfPersonName = TextEditingController();
   var tfPhoneNumber = TextEditingController();
-
-  Future<void> save(String kisi_Ad, String kisi_tel) async {
-    print("kisi kaydet: $kisi_Ad - $kisi_tel");
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +37,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                       onPressed: () {
-                        save(tfPersonName.text,tfPhoneNumber.text);
+                        context
+                            .read<RegistrationPageCubit>()
+                            .save(tfPersonName.text, tfPhoneNumber.text);
                       },
                       style: ButtonStyle(
                           backgroundColor:
-                          WidgetStateProperty.all<Color>(Colors.white54)),
+                              WidgetStateProperty.all<Color>(Colors.white54)),
                       child: const Text(
                         "Save",
                         style: TextStyle(color: Colors.black),
